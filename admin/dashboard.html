@@ -1,0 +1,298 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Admin Dashboard</title>
+    <link rel="stylesheet" href="../styles/output.css" />
+    <style>
+      /* Transition for sidebar toggling */
+      .transition-transform {
+        transition: transform 0.3s ease-in-out;
+      }
+
+      /* Overlay Effect */
+      .popup-overlay {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background-color: rgba(0, 0, 0, 0.5); /* Semi-transparent black */
+        z-index: 999;
+        display: none; /* Hidden by default */
+      }
+
+      /* Popup Container */
+      .popup {
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        width: 400px; /* Increased width */
+        background-color: white;
+        border: 1px solid #ccc;
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+        border-radius: 10px;
+        z-index: 1000;
+        display: none; /* Hidden by default */
+        padding: 10px;
+      }
+
+      .popup-content {
+        padding: 20px;
+        text-align: center;
+        position: relative;
+      }
+
+      /* Close Button */
+      .close-button {
+        position: absolute;
+        top: 10px;
+        right: 10px;
+        font-size: 20px;
+        color: #aaa;
+        cursor: pointer;
+      }
+
+      /* Display popup and overlay */
+      .popup-overlay.active,
+      .popup.active {
+        display: block;
+      }
+    </style>
+    <script src="../scripts/api.js"></script>
+    <script src="../scripts/admin/admin.js"></script>
+    <script src="../scripts/complaint.js"></script>
+    <script>
+      async function get() {
+        const res = await getAllUsers();
+        document.getElementById("usersCount").innerText = res?.count;
+      }
+
+      async function getAllComplaints() {
+        const response = await AllComplaint();
+        const receivedData = response.data;
+        document.getElementById("totalComplaint").innerText =
+          receivedData.count;
+        document.getElementById("pendingComplaints").innerText =
+          receivedData.pendingComplaints;
+        document.getElementById("resolvedComplaints").innerText =
+          receivedData.resolvedComplaints;
+
+        console.log(response);
+        if (
+          response.status === "success" &&
+          receivedData.complaints.length !== 0
+        ) {
+          const complaintsTable = document.getElementById("complaintsTable");
+          complaintsTable.innerHTML = "";
+          receivedData.complaints.forEach((complaint) => {
+            complaintsTable.innerHTML += `
+            <tr class="hover:bg-gray-100">
+                  <td class="px-4 py-2">${complaint.complaint_type}</td>
+                  <td class="px-4 py-2">${complaint.faculty}</td>
+                  <td class="px-4 py-2">${complaint.complaint_title}</td>
+                  <td class="px-4 py-2"><span class="text-white rounded-md p-2 font-bold  ${
+                    complaint.complaint_status === "Pending"
+                      ? " bg-red-500"
+                      : "bg-green-500"
+                  }">${complaint.complaint_status}</span></td>
+                  <td class="px-4 py-2">${complaint.updatedAt}</td>
+                  <td class="px-4 py-2" style="cursor: pointer; " id="togglePopup" onclick="viewComplaint('${
+                    complaint.uuid
+                  }')">View</td>
+                </tr>
+            `;
+          });
+        }
+      }
+      get();
+      getAllComplaints();
+    </script>
+    <script src="../scripts/admin/auth.js"></script>
+  </head>
+  <body class="bg-gray-100 min-h-screen flex flex-col">
+    <!-- Overlay -->
+    <div id="adminPopupOverlay" class="popup-overlay"></div>
+
+    <!-- Popup -->
+    <div id="adminPopup" class="popup">
+      <div class="popup-content">
+        <span class="close-button" id="closeAdminPopup">&times;</span>
+        <span id="detailsDiv"></span>
+        <p
+          id="updateStatusBtn"
+          onclick="updateComplaint()"
+          style="
+            padding: 3px;
+            border: 1px solid;
+            border-radius: 7px;
+            background-color: #428a42;
+            color: #ededed;
+            width: 50%;
+            margin-top: 4px;
+            margin: auto;
+            cursor: pointer;
+            display: none;
+          "
+        >
+          Resolve Complaint
+        </p>
+      </div>
+    </div>
+
+    <div class="flex flex-grow">
+      <!-- Sidebar -->
+      <aside
+        id="sidebar"
+        class="bg-cyan-600 text-white w-64 fixed sm:relative z-20 h-screen transform -translate-x-full sm:translate-x-0 transition-transform overflow-auto"
+      >
+        <div class="p-4 text-lg font-bold text-center border-b border-cyan-500">
+          Admin Dashboard
+        </div>
+        <nav class="mt-4 space-y-2">
+          <a
+            href="./dashboard.html"
+            class="block px-4 py-2 text-sm hover:bg-cyan-700"
+            >Dashboard</a
+          >
+          <a
+            href="./users.html"
+            class="block px-4 py-2 text-sm hover:bg-cyan-700"
+            >Users</a
+          >
+          <a href="#" class="block px-4 py-2 text-sm hover:bg-cyan-700"
+            >System Logs</a
+          >
+          <a href="#" class="block px-4 py-2 text-sm hover:bg-cyan-700"
+            >Settings</a
+          >
+          <a
+            onclick="logout()"
+            class="block px-4 py-2 text-sm hover:bg-cyan-700"
+            >Logout</a
+          >
+        </nav>
+      </aside>
+
+      <!-- Main Content -->
+      <main class="flex-1">
+        <!-- Top Navbar -->
+        <header class="bg-white shadow">
+          <div class="flex items-center justify-between p-4">
+            <div class="text-lg font-bold text-gray-700">Welcome, Admin</div>
+            <!-- Hamburger Menu Button -->
+            <button
+              id="menu-toggle"
+              class="sm:hidden text-cyan-600 hover:text-cyan-800 focus:outline-none"
+            >
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                class="h-6 w-6"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+              >
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="2"
+                  d="M4 6h16M4 12h16m-7 6h7"
+                />
+              </svg>
+            </button>
+          </div>
+        </header>
+
+        <!-- Content Section -->
+        <div class="p-6 space-y-6">
+          <!-- Overview Cards -->
+          <div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+            <div class="p-4 bg-white shadow rounded-lg">
+              <div class="text-sm font-medium text-gray-500">Total Users</div>
+              <div
+                class="mt-2 text-2xl font-bold text-gray-800"
+                id="usersCount"
+              ></div>
+            </div>
+            <div class="p-4 bg-white shadow rounded-lg">
+              <div class="text-sm font-medium text-gray-500">
+                Total Complaints
+              </div>
+              <div
+                class="mt-2 text-2xl font-bold text-gray-800"
+                id="totalComplaint"
+              >
+                56
+              </div>
+            </div>
+            <div class="p-4 bg-white shadow rounded-lg">
+              <div class="text-sm font-medium text-gray-500">
+                Resolved Complaints
+              </div>
+              <div
+                class="mt-2 text-2xl font-bold text-gray-800"
+                id="resolvedComplaints"
+              >
+                245
+              </div>
+            </div>
+            <div class="p-4 bg-white shadow rounded-lg">
+              <div class="text-sm font-medium text-gray-500">
+                Pending Complaints
+              </div>
+              <div
+                class="mt-2 text-2xl font-bold text-gray-800"
+                id="pendingComplaints"
+              >
+                8
+              </div>
+            </div>
+          </div>
+
+          <!-- Data Table -->
+          <div class="bg-white shadow rounded-lg overflow-x-auto">
+            <table class="min-w-full text-sm text-gray-700">
+              <thead class="bg-gray-50">
+                <tr>
+                  <th class="px-4 py-2 text-left">Category</th>
+                  <th class="px-4 py-2 text-left">Faculty</th>
+                  <th class="px-4 py-2 text-left">Title</th>
+                  <th class="px-4 py-2 text-left">Status</th>
+                  <th class="px-4 py-2 text-left">Date</th>
+                  <th class="px-4 py-2 text-left">Action</th>
+                </tr>
+              </thead>
+              <tbody id="complaintsTable">
+                <tr class="hover:bg-gray-100">
+                  <td class="px-4 py-2">John Doe</td>
+                  <td class="px-4 py-2">john.doe@example.com</td>
+                  <td class="px-4 py-2">Admin</td>
+                  <td class="px-4 py-2 text-green-600">Active</td>
+                </tr>
+                <tr class="hover:bg-gray-100">
+                  <td class="px-4 py-2">Jane Smith</td>
+                  <td class="px-4 py-2">jane.smith@example.com</td>
+                  <td class="px-4 py-2">Editor</td>
+                  <td class="px-4 py-2 text-red-600">Inactive</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </main>
+    </div>
+
+    <!-- JavaScript -->
+    <script>
+      const menuToggle = document.getElementById("menu-toggle");
+      const sidebar = document.getElementById("sidebar");
+
+      menuToggle.addEventListener("click", () => {
+        sidebar.classList.toggle("-translate-x-full");
+      });
+    </script>
+    <script src="../scripts/adminPopup.js"></script>
+  </body>
+</html>

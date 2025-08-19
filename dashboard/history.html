@@ -1,0 +1,229 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Complaint History</title>
+    <link rel="stylesheet" href="../style/style2.css" />
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css"
+    />
+    <script src="../scripts/api.js"></script>
+    <script src="../scripts/auth.js"></script>
+    <script src="../scripts/complaint.js"></script>
+    <script>
+      async function getHistory() {
+        const response = await complaintHistory();
+
+        const complaintsTable = document.getElementById("complaintTable");
+
+        if (response.status === "success") {
+          const receivedData = response.data; //array
+
+          let count = 1; // Start count from 1
+          complaintsTable.innerHTML = ""; // Clear existing rows
+
+          receivedData.forEach((complaint) => {
+            const row = `
+            <tr>
+              <td>${count++}</td>
+              <td>${complaint.complaint_type}</td>
+              <td>${complaint.faculty}</td>
+              <td>${complaint.complaint_title}</td>
+              <td>${complaint.complaint_status}</td>
+              <td>${new Date(complaint.createdAt).toLocaleString()}</td>
+              <td><a onclick="viewComplaint('${
+                complaint.uuid
+              }')" id="togglePopup" class="view-details" style="cursor:pointer;text-decoration:none;">View</a></td>
+            </tr>
+          `;
+            complaintsTable.innerHTML += row; // Append each row
+          });
+        } else {
+          complaintsTable.innerText = "No complaint submitted!";
+        }
+      }
+      getHistory();
+    </script>
+    <style>
+      /* Additional styling for the complaint history table */
+      .history-table {
+        width: 100%;
+        border-collapse: collapse;
+        margin: 20px 0;
+        font-size: 16px;
+        text-align: left;
+      }
+
+      .history-table th,
+      .history-table td {
+        border: 1px solid #ddd;
+        padding: 12px;
+      }
+
+      .history-table th {
+        background-color: #f4f4f4;
+        font-weight: bold;
+      }
+
+      .history-table tr:nth-child(even) {
+        background-color: #f9f9f9;
+      }
+
+      .history-table tr:hover {
+        background-color: #f1f1f1;
+      }
+
+      .view-details {
+        color: #007bff;
+        text-decoration: none;
+      }
+
+      .view-details:hover {
+        color: #094b92;
+        font-size: larger;
+        transition: 0.2s;
+        font-weight: 700;
+      }
+
+      /* Overlay Effect */
+      .popup-overlay {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background-color: rgba(0, 0, 0, 0.5); /* Semi-transparent black */
+        z-index: 999;
+        display: none; /* Hidden by default */
+      }
+
+      /* Popup Container */
+      .popup {
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        width: 400px; /* Increased width */
+        background-color: white;
+        border: 1px solid #ccc;
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+        border-radius: 10px;
+        z-index: 1000;
+        display: none; /* Hidden by default */
+        padding: 10px;
+      }
+
+      .popup-content {
+        padding: 20px;
+        text-align: center;
+        position: relative;
+      }
+
+      /* Close Button */
+      .close-button {
+        position: absolute;
+        top: 10px;
+        right: 10px;
+        font-size: 20px;
+        color: #aaa;
+        cursor: pointer;
+      }
+
+      .close-button:hover {
+        color: #000;
+      }
+
+      /* Button Styles */
+      button {
+        padding: 10px 20px;
+        font-size: 16px;
+        background-color: #007bff;
+        color: white;
+        border: none;
+        border-radius: 4px;
+        cursor: pointer;
+      }
+
+      button:hover {
+        background-color: #0056b3;
+      }
+
+      /* Hidden State */
+      .hidden {
+        display: none;
+      }
+
+      /* Display popup and overlay */
+      .popup-overlay.active,
+      .popup.active {
+        display: block;
+      }
+    </style>
+  </head>
+  <body>
+    <!-- Overlay -->
+    <div id="popupOverlay" class="popup-overlay"></div>
+
+    <!-- Popup -->
+    <div id="popup" class="popup">
+      <div class="popup-content">
+        <span class="close-button" id="closePopup">&times;</span>
+        <span id="detailsDiv"></span>
+      </div>
+    </div>
+
+    <!-- Main container -->
+    <div class="container">
+      <div class="sidebar">
+        <div class="profile">
+          <img src="https://via.placeholder.com/80" alt="User Profile" />
+          <p id="userFullName">User Name</p>
+        </div>
+        <nav>
+          <ul>
+            <li><i class="fas fa-home"></i><a href="../">Home</a></li>
+            <li>
+              <i class="fas fa-comment-alt"></i><a href="./">Complaint</a>
+            </li>
+            <li>
+              <i class="fas fa-history"></i>
+              <a href="./history.html">History</a>
+            </li>
+            <li>
+              <i class="fas fa-history"></i>
+              <a style="cursor: pointer" onclick="logout()">Logout</a>
+            </li>
+          </ul>
+        </nav>
+      </div>
+      <div class="main-content">
+        <h2>Complaint History</h2>
+        <div
+          id="historyMessageBox"
+          class="messageDiv"
+          style="display: none"
+        ></div>
+        <table class="history-table">
+          <thead>
+            <tr>
+              <th>#</th>
+              <th>Category</th>
+              <th>Faculty</th>
+              <th>Title</th>
+              <th>Status</th>
+              <th>Date</th>
+              <th>Action</th>
+            </tr>
+          </thead>
+          <tbody id="complaintTable">
+            <!-- Populate fields -->
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <script src="../scripts/popup.js"></script>
+  </body>
+</html>
