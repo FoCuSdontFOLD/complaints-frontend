@@ -1,130 +1,152 @@
 <!DOCTYPE html>
 <html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Register & Login</title>
-    <link
-      rel="stylesheet"
-      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css"
-    />
-    <link rel="stylesheet" href="./style/style.css" />
-    <!-- <script type="module" src="firebaseauth.js"></script> -->
-  </head>
-  <body>
-    <!-- Signup container -->
-    <div class="container" id="signup" style="display: none">
-      <h1 class="form-title">Register</h1>
-      <form onsubmit="registerStudent(event)">
-        <div id="signUpMessage" class="messageDiv" style="display: none"></div>
-        <div class="input-group">
-          <i class="fas fa-user"></i>
-          <input
-            type="text"
-            id="fName"
-            placeholder="Full Name"
-            required
-            name="fullName"
-          />
-          <label for="fname">Full Name</label>
-        </div>
-        <div class="input-group">
-          <i class="fas fa-user"></i>
-          <input
-            type="text"
-            id="matricNo"
-            placeholder="Matric No"
-            required
-            name="matricNo"
-          />
-          <label for="matricNo">Matric No</label>
-        </div>
-        <!-- <div class="input-group">
-          <i class="fas fa-user"></i>
-          <input type="text" id="lName" placeholder="Last Name" required />
-          <label for="lName">Last Name</label>
-        </div> -->
-        <div class="input-group">
-          <i class="fas fa-envelope"></i>
-          <input
-            type="email"
-            id="rEmail"
-            placeholder="Email"
-            required
-            name="email"
-          />
-          <label for="rEmail">Email</label>
-        </div>
-        <div class="input-group">
-          <i class="fas fa-lock"></i>
-          <input
-            type="password"
-            id="password"
-            placeholder="Password"
-            required
-            name="password"
-          />
-          <label for="password">Password</label>
-        </div>
-        <div class="input-group">
-          <i class="fas fa-lock"></i>
-          <input
-            type="password"
-            id="cPassword"
-            placeholder="Password"
-            required
-            name="confirmPassword"
-          />
-          <label for="cPassword">Confirm Password</label>
-        </div>
 
-        <button class="btn" type="submit" id="submitSignUp">Sign Up</button>
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>User Authentication</title>
+  <!-- Tailwind CSS CDN -->
+  <!-- <script src="https://cdn.tailwindcss.com"></script> -->
+  <link rel="stylesheet" href="./styles/output.css">
+  <!-- Google Font - Poppins -->
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap" rel="stylesheet" />
+  <!-- Font Awesome for icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" />
+  <style>
+    /* Apply Poppins font and a smooth transition to the body */
+    body {
+      font-family: "Poppins", sans-serif;
+      transition: background-color 0.5s ease;
+    }
+
+    /* Style for the button toggles between login and signup */
+    .toggle-button {
+      @apply font-bold text-green-600 hover: text-green-800 transition-colors duration-300;
+    }
+
+  </style>
+</head>
+
+<body class="bg-gray-100 flex items-center justify-center min-h-screen">
+  <!-- Main container for the authentication card -->
+  <div class="bg-white p-8 md:p-10 rounded-3xl shadow-2xl w-full max-w-md transition-all duration-500 ease-in-out">
+    <!-- Sign-in Form Container -->
+    <div id="signInContainer" class="flex flex-col items-center">
+      <h1 class="text-3xl font-bold mb-6 text-center text-gray-800">
+        Sign In
+      </h1>
+      <form id="signInForm" class="w-full" onsubmit="studentLogin(event)" name="signInForm">
+        <div id="signInMessage" class="hidden mb-4 p-3 rounded-lg text-sm text-red-700 bg-red-100" role="alert"></div>
+        <!-- Email Input -->
+        <div class="relative mb-6">
+          <i class="fas fa-envelope absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"></i>
+          <input type="email" id="email" placeholder="Email" name="email" required
+            class="w-full py-3 px-4 pl-10 border border-gray-300 rounded-full focus:outline-none focus:ring-2 focus:ring-green-500 transition-shadow duration-300" />
+          <label for="email" class="sr-only">Email</label>
+        </div>
+        <!-- Password Input -->
+        <div class="relative mb-4">
+          <i class="fas fa-lock absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"></i>
+          <input type="password" id="password" placeholder="Password" name="password" required
+            class="w-full py-3 px-4 pl-10 border border-gray-300 rounded-full focus:outline-none focus:ring-2 focus:ring-green-500 transition-shadow duration-300" />
+          <label for="password" class="sr-only">Password</label>
+        </div>
+        <!-- Recover Password Link -->
+        <div class="text-right text-sm mb-6">
+          <a href="#" class="text-green-600 hover:underline transition-colors duration-300">Forgot password?</a>
+        </div>
+        <!-- Sign-in Button -->
+        <button type="submit" id="submitSignIn"
+          class="w-full py-3 bg-[#008000] text-white rounded-full font-semibold hover:bg-[#006600] transition-colors duration-300 shadow-md">
+          Sign In
+        </button>
       </form>
-      <div class="links">
-        <p>Already Have Account ?</p>
-        <button id="signInButton">Sign In</button>
+
+      <!-- Toggle to Sign Up -->
+      <div class="mt-6 text-center text-gray-600">
+        <p>Don't have an account?</p>
+        <button id="signUpButton" class="toggle-button mt-1">Sign Up</button>
       </div>
     </div>
 
-    <!-- Signin container -->
-    <div class="container" id="signIn">
-      <h1 class="form-title">Sign In</h1>
-      <form onsubmit="studentLogin(event)">
-        <div id="signInMessage" class="messageDiv" style="display: none"></div>
-        <div class="input-group">
-          <i class="fas fa-envelope"></i>
-          <input
-            type="email"
-            id="email"
-            placeholder="Email"
-            name="email"
-            required
-          />
-          <label for="email">Email</label>
+    <!-- Sign-up Form Container (Initially hidden) -->
+    <div id="signUpContainer" class="hidden flex flex-col items-center">
+      <h1 class="text-3xl font-bold mb-6 text-center text-gray-800">
+        Register
+      </h1>
+      <form id="signUpForm" class="w-full" onsubmit="registerStudent(event)" name="signUpForm">
+        <div id="signUpMessage" class="hidden mb-4 p-3 rounded-lg text-sm text-red-700 bg-red-100" role="alert"></div>
+        <!-- Full Name Input -->
+        <div class="relative mb-6">
+          <i class="fas fa-user absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"></i>
+          <input type="text" id="fName" placeholder="Full Name" name="fullName" required
+            class="w-full py-3 px-4 pl-10 border border-gray-300 rounded-full focus:outline-none focus:ring-2 focus:ring-green-500" />
+          <label for="fName" class="sr-only">Full Name</label>
         </div>
-        <div class="input-group">
-          <i class="fas fa-lock"></i>
-          <input
-            type="password"
-            id="password"
-            placeholder="Password"
-            required
-            name="password"
-          />
-          <label for="password">Password</label>
+        <!-- Matric No Input -->
+        <div class="relative mb-6">
+          <i class="fas fa-id-card absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"></i>
+          <input type="text" id="matricNo" placeholder="Matric No" name="matricNo" required
+            class="w-full py-3 px-4 pl-10 border border-gray-300 rounded-full focus:outline-none focus:ring-2 focus:ring-green-500" />
+          <label for="matricNo" class="sr-only">Matric No</label>
         </div>
-        <p class="recover">
-          <a href="#">Recover Password</a>
-        </p>
-        <button class="btn" type="submit" id="submitSignIn">Sign In</button>
+        <!-- Email Input -->
+        <div class="relative mb-6">
+          <i class="fas fa-envelope absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"></i>
+          <input type="email" id="rEmail" placeholder="Email" name="email" required
+            class="w-full py-3 px-4 pl-10 border border-gray-300 rounded-full focus:outline-none focus:ring-2 focus:ring-green-500" />
+          <label for="rEmail" class="sr-only">Email</label>
+        </div>
+        <!-- Password Input -->
+        <div class="relative mb-6">
+          <i class="fas fa-lock absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"></i>
+          <input type="password" id="rPassword" placeholder="Password" name="password" required
+            class="w-full py-3 px-4 pl-10 border border-gray-300 rounded-full focus:outline-none focus:ring-2 focus:ring-green-500" />
+          <label for="rPassword" class="sr-only">Password</label>
+        </div>
+        <!-- Confirm Password Input -->
+        <div class="relative mb-6">
+          <i class="fas fa-lock absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"></i>
+          <input type="password" id="cPassword" placeholder="Confirm Password" name="confirmPassword" required
+            class="w-full py-3 px-4 pl-10 border border-gray-300 rounded-full focus:outline-none focus:ring-2 focus:ring-green-500" />
+          <label for="cPassword" class="sr-only">Confirm Password</label>
+        </div>
+        <!-- Sign-up Button -->
+        <button type="submit" id="submitSignUp"
+          class="w-full py-3 bg-[#008000] text-white rounded-full font-semibold hover:bg-[#006600] transition-colors duration-300 shadow-md">
+          Sign Up
+        </button>
       </form>
-      <div class="links">
-        <p>Don't have account yet?</p>
-        <button id="signUpButton">Sign Up</button>
+
+      <!-- Toggle to Sign In -->
+      <div class="mt-6 text-center text-gray-600">
+        <p>Already have an account?</p>
+        <button id="signInButton" class="toggle-button mt-1">Sign In</button>
       </div>
     </div>
-    <script src="./scripts/api.js"></script>
-    <script src="./scripts/script.js"></script>
-    <script src="./scripts/authetication.js"></script>
-  </body>
+  </div>
+
+  <script>
+    // Get references to the containers and buttons
+    const signInContainer = document.getElementById("signInContainer");
+    const signUpContainer = document.getElementById("signUpContainer");
+    const signInButton = document.getElementById("signInButton");
+    const signUpButton = document.getElementById("signUpButton");
+
+    // Add event listeners to toggle between forms
+    signInButton.addEventListener("click", () => {
+      signInContainer.classList.remove("hidden");
+      signUpContainer.classList.add("hidden");
+    });
+
+    signUpButton.addEventListener("click", () => {
+      signUpContainer.classList.remove("hidden");
+      signInContainer.classList.add("hidden");
+    });
+  </script>
+  <script src="./scripts/api.js"></script>
+  <script src="./scripts/script.js"></script>
+  <script src="./scripts/authetication.js"></script>
+</body>
+
 </html>
